@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-REPO_URL="https://github.com/FR1NG/arena_automator.git"
+REPO_URL="https://github.com/FR1NG/arana_automator.git"
 
 git clone $REPO_URL /tmp/arena_automator
 if [ ! -d ~/.local/bin/] ; then
