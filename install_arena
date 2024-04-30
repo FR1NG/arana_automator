@@ -8,7 +8,7 @@ if [ ! -d ~/.local/bin/] ; then
     mkdir -p ~/.local/bin/
 fi
 
-cp /tmp/arena_automator/arena_automator/arena ~/.local/bin/arena
+cp /tmp/arena_automator/arena ~/.local/bin/arena
 
 # check user shell
 if [ -f ~/.bashrc ] ; then
