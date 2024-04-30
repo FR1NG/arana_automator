@@ -1,0 +1,45 @@
+#!/bin/bash
+
+
+REPO_URL="https://github.com/FR1NG/arena_automator.git"
+
+git clone $REPO_URL /tmp/arena_automator
+if [ ! -d ~/.local/bin/] ; then
+    mkdir -p ~/.local/bin/
+fi
+
+cp /tmp/arena_automator/arena_automator/arena ~/.local/bin/arena
+
+# check user shell
+if [ -f ~/.bashrc ] ; then
+    echo "export PATH=\$PATH:~/.local/bin" >> ~/.bashrc
+elif [ -f ~/.zshrc ] ; then
+    echo "export PATH=\$PATH:~/.local/bin" >> ~/.zshrc
+else
+    echo "Shell not supported"
+    exit 1
+fi
+
+if [ ! -d ~/.config/arena/ ] ; then
+    mkdir -p ~/.config/arena/
+fi
+
+if [ -f ~/.config/arena/config.conf ] ; then
+  mv ~/.config/arena/config.conf ~/.config/arena/config.conf.old
+fi
+
+read -p "Enter the path of arena project directory: " ARENA_PATH
+echo "ARENA_PATH=$ARENA_PATH" > ~/.config/arena/config.conf
+
+read -p "Are you on production server? (y/n): " PRODUCTION
+while [ $PRODUCTION != "y" ] && [ $PRODUCTION != "n" ] ; do
+    read -p "Are you on production server? (y/n): " PRODUCTION
+done
+
+if [ $PRODUCTION == "y" ] ; then
+    echo "PRODUCTION=true" >> ~/.config/arena/config.conf
+else
+    echo "PRODUCTION=false" >> ~/.config/arena/config.conf
+fi
+
+# vi:set ft=sh

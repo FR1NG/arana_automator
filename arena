@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# copy fixtures to docker container
+
+print_error() {
+  echo -e "\033[0;31m$1\033[0m"
+}
+
+print_info() {
+  echo -e "\033[0;32m$1\033[0m"
+}
+
+print_warning() {
+  echo -e "\033[0;33m$1\033[0m"
+}
+
+print_success() {
+  echo -e "\033[0;34m$1\033[0m"
+}
+
+CONTAINER_NAME=arenadev
+
+loading_config() {
+    if [ -f ~/.config/arena/config.conf ]; then
+        source ~/.config/arena/config.conf
+    else
+        print_error "Error: config file not found."
+        exit 1
+    fi
+}
+
+prepare_fixtures() {
+    clear
+    print_info "Preparing fixtures..."
+    FIXTURES_DIR="/home/black/scripts/data/fixtures"
+
+
+    if [ ! -d $FIXTURES_DIR ]; then
+        print_error "Error: fixtures directory not found."
+        exit 1
+    fi
+    for f in $(ls $FIXTURES_DIR); do
+        docker cp $FIXTURES_DIR/$f $CONTAINER_NAME:/tmp/$f
+        docker exec -it $CONTAINER_NAME bash -c "python manage.py loaddata /tmp/$f"
+        docker exec -it $CONTAINER_NAME bash -c "rm /tmp/$f"
+    done
+}
+
+arg_exists() {
+    local arg=$1
+    shift
+    for a in "$@"; do
+        if [ "$a" == "$arg" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+
+run_arena_dev() {
+    print_info "Running arena dev server..."
+
+    PROJECT_DIR="/home/black/work/projects/Django-Docker-ECS"
+    if [ ! -d $PROJECT_DIR ]; then
+        print_error "Error: project directory not found."
+        exit 1
+    fi
+
+    COMMAND="docker compose -f docker-compose.yaml up"
+    arg_exists "-b" $@ && COMMAND="$COMMAND --build"
+    if ! arg_exists "-f" $@ ; then
+        COMMAND="$COMMAND -d"
+    fi
+    echo $COMMAND
+    cd $PROJECT_DIR && $COMMAND
+}
+
+show_logs() {
+    print_info "Showing logs..."
+    docker logs -f $CONTAINER_NAME
+}
+
+run_interactive_shell() {
+    print_info "Running interactive shell..."
+    docker exec -it $CONTAINER_NAME bash
+}
+
+case $1 in
+    prepare)
+        prepare_fixtures
+        ;;
+    serve)
+      run_arena_dev $@
+      ;;
+    shell)
+      run_interactive_shell
+        ;;
+    logs)
+      show_logs
+        ;;
+    *)
+      echo "Error: invalid command."
+esac
+
+
+# vi:set ft=sh
